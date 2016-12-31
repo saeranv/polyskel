@@ -43,7 +43,7 @@ def _window(lst):
 	prevs, items, nexts = tee(lst, 3)
 	prevs = islice(cycle(prevs), len(lst)-1, None)
 	nexts = islice(cycle(nexts), 1, None)
-	return izip(prevs, items, nexts)
+	return zip(prevs, items, nexts)
 
 def _cross(a, b):
 	res = a.x*b.y - b.x*a.y
@@ -188,6 +188,10 @@ class _LAVertex:
 
 	def __str__(self):
 		return "Vertex ({:.2f};{:.2f})".format(self.point.x, self.point.y)
+
+	def __lt__(self, other):
+		if isinstance(other, _LAVertex):
+			return self.point.x < other.point.x
 
 	def __repr__(self):
 		return "Vertex ({}) ({:.2f};{:.2f}), bisector {}, edges {} {}".format("reflex" if self.is_reflex else "convex", self.point.x, self.point.y, self.bisector, self.edge_left, self.edge_right)
@@ -390,7 +394,7 @@ class _LAV:
 	def _show(self):
 		cur = self.head
 		while True:
-			print cur.__repr__()
+			print(cur.__repr__())
 			cur = cur.next
 			if cur == self.head:
 				break
@@ -418,7 +422,7 @@ class _EventQueue:
 
 	def show(self):
 		for item in self.__data:
-			print item
+			print(item)
 
 def skeletonize(polygon, holes=None):
 	"""
@@ -436,7 +440,8 @@ def skeletonize(polygon, holes=None):
 
 	for lav in slav:
 		for vertex in lav:
-			prioque.put(vertex.next_event())
+			v = vertex.next_event()
+			prioque.put(v)
 
 	while not (prioque.empty() or slav.empty()):
 		log.debug("SLAV is %s", [repr(lav) for lav in slav])
@@ -462,4 +467,3 @@ def skeletonize(polygon, holes=None):
 
 			_debug.show()
 	return output
-
