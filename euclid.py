@@ -1789,7 +1789,14 @@ class Point2(Vector2, Geometry):
     def __lt__(self, other):
         if isinstance(other, Vector2):
             return self.x < other.x
-            
+
+    def __eq__(self, other):
+        if isinstance(other, Vector2):
+            return self.x == other.x and self.y == other.y
+
+    def __hash__(self):
+        return hash(repr(self))
+
     def intersect(self, other):
         return other._intersect_point2(self)
 
