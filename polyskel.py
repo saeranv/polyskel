@@ -45,7 +45,7 @@ def _window(lst):
 	nexts = islice(cycle(nexts), 1, None)
 	return zip(prevs, items, nexts)
 
-def _cross(a, b):
+def _determinant(a, b):
 	res = a.x*b.y - b.x*a.y
 	return res
 
@@ -92,7 +92,11 @@ class _LAVertex:
 		if direction_vectors is None:
 			direction_vectors = creator_vectors
 
-		self._is_reflex = _cross(-direction_vectors[0], direction_vectors[1]) < 0.0 # Flip first vector so correct
+		# The determinant of two 2d vectors equals the sign of their cross product
+		# If second vector is to left, then sign of det is pos, else neg
+		# So if cw polygon, convex angle will be neg (since second vector to right)
+		# In this case, since we flip first vector, concave will be neg
+		self._is_reflex = _determinant(*direction_vectors) < 0.0
 		self._bisector = Ray2(self.point, operator.add(*creator_vectors) * (-1 if self.is_reflex else 1))
 		log.info("Created vertex %s", self.__repr__())
 		_debug.line((self.bisector.p.x, self.bisector.p.y, self.bisector.p.x+self.bisector.v.x*100, self.bisector.p.y+self.bisector.v.y*100), fill="blue")
@@ -149,9 +153,9 @@ class _LAVertex:
 
 					#check eligibility of b
 					# a valid b should lie within the area limited by the edge and the bisectors of its two vertices:
-					xleft =  _cross(edge.bisector_left.v.normalized(), (b - edge.bisector_left.p).normalized())  > 0
-					xright = _cross(edge.bisector_right.v.normalized(), (b - edge.bisector_right.p).normalized())  <  0
-					xedge =  _cross(edge.edge.v.normalized(), (b - edge.edge.p).normalized()) < 0
+					xleft = _determinant(edge.bisector_left.v.normalized(), (b - edge.bisector_left.p).normalized()) > 0
+					xright = _determinant(edge.bisector_right.v.normalized(), (b - edge.bisector_right.p).normalized()) < 0
+					xedge = _determinant(edge.edge.v.normalized(), (b - edge.edge.p).normalized()) < 0
 
 					if not (xleft and xright and xedge):
 						log.debug("\t\tDiscarded candidate %s (%s-%s-%s)", b, xleft, xright, xedge)
@@ -258,8 +262,8 @@ class _SLAV:
 				x=y.next
 
 			if x:
-				xleft =  _cross(y.bisector.v.normalized(), (event.intersection_point - y.point).normalized())  >= 0
-				xright = _cross(x.bisector.v.normalized(), (event.intersection_point - x.point).normalized())  <=  0
+				xleft = _determinant(y.bisector.v.normalized(), (event.intersection_point - y.point).normalized()) >= 0
+				xright = _determinant(x.bisector.v.normalized(), (event.intersection_point - x.point).normalized()) <= 0
 				log.debug("Vertex %s holds edge as %s edge (%s, %s)", v, ("left" if x==v else "right"), xleft, xright)
 
 				if xleft and xright:
