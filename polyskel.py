@@ -92,7 +92,7 @@ class _LAVertex:
 		if direction_vectors is None:
 			direction_vectors = creator_vectors
 
-		self._is_reflex = (_cross(*direction_vectors)) < 0
+		self._is_reflex = _cross(-direction_vectors[0], direction_vectors[1]) < 0.0 # Flip first vector so correct
 		self._bisector = Ray2(self.point, operator.add(*creator_vectors) * (-1 if self.is_reflex else 1))
 		log.info("Created vertex %s", self.__repr__())
 		_debug.line((self.bisector.p.x, self.bisector.p.y, self.bisector.p.x+self.bisector.v.x*100, self.bisector.p.y+self.bisector.v.y*100), fill="blue")
